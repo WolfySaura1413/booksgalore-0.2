@@ -17,6 +17,7 @@ const searchInput = document.getElementById('search-input');
 const resultsGrid = document.getElementById('results-grid');
 const emptyState = document.getElementById('empty-state');
 const emptyStateCopy = document.getElementById('empty-state-copy');
+const emptyStateClose = document.getElementById('empty-state-close');
 const viewHeading = document.getElementById('view-heading');
 const viewSubtitle = document.getElementById('view-subtitle');
 const sortBy = document.getElementById('sort-by');
@@ -85,6 +86,14 @@ function showEmptyState(message) {
 
 function hideEmptyState() {
   emptyState.hidden = true;
+}
+
+function dismissEmptyState() {
+  hideEmptyState();
+
+  if (state.currentView !== 'bookshelf') {
+    renderResults();
+  }
 }
 
 function normalizeBook(doc) {
@@ -532,6 +541,8 @@ window.addEventListener('keydown', (event) => {
     toggleSidebar(false);
   }
 });
+
+emptyStateClose.addEventListener('click', dismissEmptyState);
 
 loadSavedBooks();
 renderResults();
