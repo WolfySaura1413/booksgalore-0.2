@@ -9,6 +9,7 @@ import {
   setDoc,
   updateDoc
 } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js';
+import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js';
 
 const searchBar = document.getElementById('search-bar');
 const searchForm = document.getElementById('search-form');
@@ -42,6 +43,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 const state = {
   currentView: 'search',
@@ -50,8 +52,22 @@ const state = {
   savedBooks: {},
   currentBook: null,
   searchTimer: null,
-  isLoading: false
+  isLoading: false,
+  authReadyPromise: null
 };
+
+async function ensureAuth() {
+  if (!state.authReadyPromise) {
+    state.authReadyPromise = signInAnonymously(auth)
+      .then(() => true)
+      .catch((error) => {
+        state.authReadyPromise = null;
+        throw error;
+      });
+  }
+
+  await state.authReadyPromise;
+}
 
 function toggleSidebar(forceOpen) {
   const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : !filterSidebar.classList.contains('open');
@@ -308,6 +324,7 @@ async function fetchResults(query) {
 
 async function loadSavedBooks() {
   try {
+    await ensureAuth();
     const snapshot = await getDocs(collection(db, 'reading-list'));
     state.savedBooks = {};
 
@@ -348,6 +365,7 @@ async function saveBook(book) {
   };
 
   try {
+    await ensureAuth();
     await setDoc(doc(db, 'reading-list', book.key), payload);
     state.savedBooks[book.key] = payload;
     renderResults();
@@ -359,6 +377,7 @@ async function saveBook(book) {
 
 async function removeBook(key) {
   try {
+    await ensureAuth();
     await deleteDoc(doc(db, 'reading-list', key));
     delete state.savedBooks[key];
 
@@ -379,6 +398,7 @@ async function removeBook(key) {
 
 async function toggleStatus(key, status) {
   try {
+    await ensureAuth();
     await updateDoc(doc(db, 'reading-list', key), { status });
     state.savedBooks[key].status = status;
 
