@@ -1,3 +1,15 @@
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  getFirestore,
+  serverTimestamp,
+  setDoc,
+  updateDoc
+} from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js';
+
 const searchBar = document.getElementById('search-bar');
 const searchForm = document.getElementById('search-form');
 const searchInput = document.getElementById('search-input');
@@ -20,18 +32,16 @@ const modalClose = document.getElementById('modal-close');
 const modalContent = document.getElementById('modal-content');
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: 'AIzaSyC-MmuTZSe1uNNvW-3YSMBl7jfzAfBvDgE',
+  authDomain: 'booksgalore-1413.firebaseapp.com',
+  projectId: 'booksgalore-1413',
+  storageBucket: 'booksgalore-1413.firebasestorage.app',
+  messagingSenderId: '817700718822',
+  appId: '1:817700718822:web:4d393a6b0fc776b5649327'
 };
 
-const firebaseConfigured = !Object.values(firebaseConfig).some((value) => /YOUR_/.test(value));
-
-const app = firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 const state = {
   currentView: 'search',
@@ -297,17 +307,13 @@ async function fetchResults(query) {
 }
 
 async function loadSavedBooks() {
-  if (!firebaseConfigured) {
-    showEmptyState('Set your Firebase config in app.js to enable your bookshelf.');
-    return;
-  }
-
   try {
-    const snapshot = await db.collection('reading-list').get();
+    const snapshot = await getDocs(collection(db, 'reading-list'));
     state.savedBooks = {};
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-      state.savedBooks[doc.id] = {
+
+    snapshot.forEach((savedDoc) => {
+      const data = savedDoc.data();
+      state.savedBooks[savedDoc.id] = {
         key: data.key,
         title: data.title,
         author_name: data.author_name || ['Unknown author'],
@@ -325,16 +331,11 @@ async function loadSavedBooks() {
     }
   } catch (error) {
     console.error(error);
-    showEmptyState('Your bookshelf could not be loaded. Check the Firebase config in app.js.');
+    showEmptyState('Your bookshelf could not be loaded. Please try again.');
   }
 }
 
 async function saveBook(book) {
-  if (!firebaseConfigured) {
-    showEmptyState('Set your Firebase config in app.js to enable your bookshelf.');
-    return;
-  }
-
   const payload = {
     key: book.key,
     title: book.title,
@@ -343,28 +344,24 @@ async function saveBook(book) {
     first_publish_year: book.first_publish_year ?? null,
     edition_count: book.edition_count ?? null,
     status: 'want-to-read',
-    savedAt: firebase.firestore.FieldValue.serverTimestamp()
+    savedAt: serverTimestamp()
   };
 
   try {
-    await db.collection('reading-list').doc(book.key).set(payload);
+    await setDoc(doc(db, 'reading-list', book.key), payload);
     state.savedBooks[book.key] = payload;
     renderResults();
   } catch (error) {
     console.error(error);
-    showEmptyState('Could not save this book. Check your Firebase config in app.js.');
+    showEmptyState('Could not save this book. Please try again.');
   }
 }
 
 async function removeBook(key) {
-  if (!firebaseConfigured) {
-    showEmptyState('Set your Firebase config in app.js to enable your bookshelf.');
-    return;
-  }
-
   try {
-    await db.collection('reading-list').doc(key).delete();
+    await deleteDoc(doc(db, 'reading-list', key));
     delete state.savedBooks[key];
+
     if (state.currentView === 'bookshelf') {
       renderBookshelf();
     } else {
@@ -376,18 +373,13 @@ async function removeBook(key) {
     }
   } catch (error) {
     console.error(error);
-    showEmptyState('Could not remove this book. Check your Firebase config in app.js.');
+    showEmptyState('Could not remove this book. Please try again.');
   }
 }
 
 async function toggleStatus(key, status) {
-  if (!firebaseConfigured) {
-    showEmptyState('Set your Firebase config in app.js to enable your bookshelf.');
-    return;
-  }
-
   try {
-    await db.collection('reading-list').doc(key).update({ status });
+    await updateDoc(doc(db, 'reading-list', key), { status });
     state.savedBooks[key].status = status;
 
     if (state.currentBook && state.currentBook.key === key) {
@@ -402,7 +394,7 @@ async function toggleStatus(key, status) {
     }
   } catch (error) {
     console.error(error);
-    showEmptyState('Could not update this book status. Check your Firebase config in app.js.');
+    showEmptyState('Could not update this book status. Please try again.');
   }
 }
 
