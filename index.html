@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Booksgalore</title>
+  <meta name="description" content="A cosy reading companion for searching books and saving your personal bookshelf." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <button id="bookshelf-toggle" class="bookshelf-toggle" type="button" aria-label="Open your bookshelf">Your Bookshelf</button>
+
+  <div id="sidebar-overlay" class="sidebar-overlay" aria-hidden="true"></div>
+
+  <div class="app-shell">
+    <aside id="filter-sidebar" class="filter-sidebar" aria-label="Filter books">
+      <div class="filter-sidebar__header">
+        <div>
+          <p class="eyebrow">Filter</p>
+          <h2>Find your next read</h2>
+        </div>
+        <button id="filter-close" class="icon-button" type="button" aria-label="Close filter menu">×</button>
+      </div>
+
+      <div class="filter-group">
+        <label for="sort-by">Sort by</label>
+        <select id="sort-by">
+          <option value="relevance">Relevance</option>
+          <option value="year-desc">Year (Newest)</option>
+          <option value="year-asc">Year (Oldest)</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="publication-era">Publication era</label>
+        <select id="publication-era">
+          <option value="any">Any</option>
+          <option value="classic">Classic (pre-1950)</option>
+          <option value="modern">Modern (1950–2000)</option>
+          <option value="contemporary">Contemporary (2000+)</option>
+        </select>
+      </div>
+
+      <div class="filter-group filter-group--toggle">
+        <label for="has-cover">Has cover image</label>
+        <label class="toggle-switch">
+          <input id="has-cover" type="checkbox" />
+          <span class="toggle-switch__slider"></span>
+        </label>
+      </div>
+
+      <div class="filter-group">
+        <label for="minimum-editions">Minimum editions</label>
+        <select id="minimum-editions">
+          <option value="any">Any</option>
+          <option value="2">2+</option>
+          <option value="5">5+</option>
+          <option value="10">10+</option>
+        </select>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-bar">
+        <div>
+          <p class="eyebrow">Booksgalore</p>
+          <h1>Search and save your cosy reading list</h1>
+          <p class="intro-copy">Browse books from OpenLibrary, filter the results, and keep your shelf close at hand.</p>
+        </div>
+
+        <div class="search-bar" id="search-bar" tabindex="0">
+          <span class="search-bar__label">Search</span>
+          <form id="search-form" class="search-bar__form">
+            <input
+              id="search-input"
+              type="search"
+              placeholder="Search by title or author"
+              aria-label="Search by title or author"
+            />
+            <button id="search-button" class="search-button" type="submit" aria-label="Search books">Search</button>
+          </form>
+        </div>
+
+        <button id="filter-toggle" class="filter-toggle" type="button" aria-label="Toggle filter sidebar" aria-expanded="false">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </header>
+
+      <section class="content-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Current view</p>
+            <h2 id="view-heading">Search results</h2>
+          </div>
+          <p id="view-subtitle" class="view-subtitle">Search for a title or author to browse the collection.</p>
+        </div>
+
+        <div id="results-grid" class="results-grid" aria-live="polite"></div>
+        <div id="empty-state" class="empty-state" hidden>
+          <p class="empty-state__icon">📖</p>
+          <h3>No books here yet</h3>
+          <p id="empty-state-copy">Search for a title or author to begin building your reading list.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="modal-overlay" class="modal-overlay" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button id="modal-close" class="icon-button modal-close" type="button" aria-label="Close details modal">×</button>
+      <div id="modal-content" class="modal-content"></div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
