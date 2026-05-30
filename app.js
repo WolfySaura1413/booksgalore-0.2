@@ -1,4 +1,4 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js';
+import { getApp } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js';
 import {
   collection,
   deleteDoc,
@@ -33,16 +33,8 @@ const modalOverlay = document.getElementById('modal-overlay');
 const modalClose = document.getElementById('modal-close');
 const modalContent = document.getElementById('modal-content');
 
-const firebaseConfig = {
-  apiKey: 'AIzaSyC-MmuTZSe1uNNvW-3YSMBl7jfzAfBvDgE',
-  authDomain: 'booksgalore-1413.firebaseapp.com',
-  projectId: 'booksgalore-1413',
-  storageBucket: 'booksgalore-1413.firebasestorage.app',
-  messagingSenderId: '817700718822',
-  appId: '1:817700718822:web:4d393a6b0fc776b5649327'
-};
-
-const app = initializeApp(firebaseConfig);
+// The app is initialized in index.html so modules can call `getApp()` here.
+const app = getApp();
 const db = getFirestore(app);
 const auth = getAuth(app);
 
