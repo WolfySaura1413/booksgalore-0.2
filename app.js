@@ -99,6 +99,22 @@ function hideEmptyState() {
   emptyState.hidden = true;
 }
 
+function getFirebaseNotice() {
+  if (state.firebaseAvailable) {
+    return '';
+  }
+
+  if (state.currentView === 'search' && state.searchQuery.trim()) {
+    return 'Firebase persistence is unavailable; your search works, but saved books cannot be stored until Firebase is configured.';
+  }
+
+  if (state.currentView === 'bookshelf') {
+    return 'Firebase persistence is unavailable; your bookshelf cannot be loaded until Firebase is configured.';
+  }
+
+  return '';
+}
+
 function dismissEmptyState() {
   hideEmptyState();
 
@@ -167,6 +183,11 @@ function renderResults() {
     ? 'Your saved books are waiting for you below.'
     : `Showing ${filtered.length} result${filtered.length === 1 ? '' : 's'} for “${state.searchQuery}”.`;
 
+  const firebaseNotice = getFirebaseNotice();
+  if (firebaseNotice) {
+    viewSubtitle.textContent += ' ' + firebaseNotice;
+  }
+
   filtered.forEach((book) => {
     const savedBook = getSavedBook(book);
     const status = savedBook ? savedBook.status : 'want-to-read';
@@ -220,6 +241,11 @@ function renderBookshelf() {
   viewSubtitle.textContent = savedEntries.length
     ? 'Your saved books are waiting for you below.'
     : 'Your bookshelf is empty. Save a book to start building your personal list.';
+
+  const firebaseNotice = getFirebaseNotice();
+  if (firebaseNotice) {
+    viewSubtitle.textContent += ' ' + firebaseNotice;
+  }
 
   resultsGrid.innerHTML = '';
 
@@ -344,7 +370,6 @@ async function fetchResults(query) {
 async function loadSavedBooks() {
   if (!state.firebaseAvailable) {
     state.savedBooks = {};
-    showEmptyState('Reading list persistence is unavailable (Firebase not configured). You can still search, but saving is disabled.');
     if (state.currentView === 'bookshelf') {
       renderBookshelf();
     } else {
@@ -384,7 +409,8 @@ async function loadSavedBooks() {
 
 async function saveBook(book) {
   if (!state.firebaseAvailable) {
-    showEmptyState('Saving is disabled because persistence is not configured.');
+    console.warn('Firebase persistence unavailable; save skipped.');
+    renderResults();
     return;
   }
   const payload = {
@@ -411,7 +437,12 @@ async function saveBook(book) {
 
 async function removeBook(key) {
   if (!state.firebaseAvailable) {
-    showEmptyState('Removing is disabled because persistence is not configured.');
+    console.warn('Firebase persistence unavailable; remove skipped.');
+    if (state.currentView === 'bookshelf') {
+      renderBookshelf();
+    } else {
+      renderResults();
+    }
     return;
   }
   try {
@@ -436,7 +467,12 @@ async function removeBook(key) {
 
 async function toggleStatus(key, status) {
   if (!state.firebaseAvailable) {
-    showEmptyState('Updating status is disabled because persistence is not configured.');
+    console.warn('Firebase persistence unavailable; status update skipped.');
+    if (state.currentView === 'bookshelf') {
+      renderBookshelf();
+    } else {
+      renderResults();
+    }
     return;
   }
   try {
