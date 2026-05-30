@@ -99,22 +99,6 @@ function hideEmptyState() {
   emptyState.hidden = true;
 }
 
-function getFirebaseNotice() {
-  if (state.firebaseAvailable) {
-    return '';
-  }
-
-  if (state.currentView === 'search' && state.searchQuery.trim()) {
-    return 'Firebase persistence is unavailable; your search works, but saved books cannot be stored until Firebase is configured.';
-  }
-
-  if (state.currentView === 'bookshelf') {
-    return 'Firebase persistence is unavailable; your bookshelf cannot be loaded until Firebase is configured.';
-  }
-
-  return '';
-}
-
 function dismissEmptyState() {
   hideEmptyState();
 
@@ -183,11 +167,6 @@ function renderResults() {
     ? 'Your saved books are waiting for you below.'
     : `Showing ${filtered.length} result${filtered.length === 1 ? '' : 's'} for “${state.searchQuery}”.`;
 
-  const firebaseNotice = getFirebaseNotice();
-  if (firebaseNotice) {
-    viewSubtitle.textContent += ' ' + firebaseNotice;
-  }
-
   filtered.forEach((book) => {
     const savedBook = getSavedBook(book);
     const status = savedBook ? savedBook.status : 'want-to-read';
@@ -241,11 +220,6 @@ function renderBookshelf() {
   viewSubtitle.textContent = savedEntries.length
     ? 'Your saved books are waiting for you below.'
     : 'Your bookshelf is empty. Save a book to start building your personal list.';
-
-  const firebaseNotice = getFirebaseNotice();
-  if (firebaseNotice) {
-    viewSubtitle.textContent += ' ' + firebaseNotice;
-  }
 
   resultsGrid.innerHTML = '';
 
