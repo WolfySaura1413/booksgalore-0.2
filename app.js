@@ -139,8 +139,7 @@ function renderResults() {
   if (!state.searchQuery.trim()) {
     viewHeading.textContent = 'Search results';
     viewSubtitle.textContent = 'Search for a title or author to browse the collection.';
-    hideEmptyState();
-    resultsGrid.innerHTML = '<div class="empty-state"><p class="empty-state__icon">🔎</p><h3>Start by searching</h3><p>Use the search bar to find books by title or author.</p></div>';
+    showEmptyState('Start by searching — use the search bar to find books by title or author.');
     return;
   }
 
