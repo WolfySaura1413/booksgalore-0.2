@@ -54,7 +54,8 @@ const state = {
   currentBook: null,
   searchTimer: null,
   isLoading: false,
-  authReadyPromise: null
+  authReadyPromise: null,
+  firebaseAvailable: true
 };
 
 async function ensureAuth() {
@@ -62,6 +63,16 @@ async function ensureAuth() {
     state.authReadyPromise = signInAnonymously(auth)
       .then(() => true)
       .catch((error) => {
+        // If anonymous auth isn't configured in the Firebase project
+        // disable persistence features and allow the app to continue.
+        const code = error && error.code ? error.code : '';
+        const msg = error && error.message ? error.message : '';
+        if (code === 'auth/configuration-not-found' || msg.includes('configuration-not-found') || msg.includes('404') || msg.includes('400')) {
+          console.warn('Firebase anonymous auth not available; persistence disabled.', error);
+          state.firebaseAvailable = false;
+          return true;
+        }
+
         state.authReadyPromise = null;
         throw error;
       });
@@ -331,6 +342,17 @@ async function fetchResults(query) {
 }
 
 async function loadSavedBooks() {
+  if (!state.firebaseAvailable) {
+    state.savedBooks = {};
+    showEmptyState('Reading list persistence is unavailable (Firebase not configured). You can still search, but saving is disabled.');
+    if (state.currentView === 'bookshelf') {
+      renderBookshelf();
+    } else {
+      renderResults();
+    }
+    return;
+  }
+
   try {
     await ensureAuth();
     const snapshot = await getDocs(collection(db, 'reading-list'));
@@ -361,6 +383,10 @@ async function loadSavedBooks() {
 }
 
 async function saveBook(book) {
+  if (!state.firebaseAvailable) {
+    showEmptyState('Saving is disabled because persistence is not configured.');
+    return;
+  }
   const payload = {
     key: book.key,
     title: book.title,
@@ -384,6 +410,10 @@ async function saveBook(book) {
 }
 
 async function removeBook(key) {
+  if (!state.firebaseAvailable) {
+    showEmptyState('Removing is disabled because persistence is not configured.');
+    return;
+  }
   try {
     await ensureAuth();
     await deleteDoc(doc(db, 'reading-list', key));
@@ -405,6 +435,10 @@ async function removeBook(key) {
 }
 
 async function toggleStatus(key, status) {
+  if (!state.firebaseAvailable) {
+    showEmptyState('Updating status is disabled because persistence is not configured.');
+    return;
+  }
   try {
     await ensureAuth();
     await updateDoc(doc(db, 'reading-list', key), { status });
